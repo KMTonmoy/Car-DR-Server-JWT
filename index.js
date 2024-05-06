@@ -19,7 +19,7 @@ app.use(cookieParser());
 
 console.log(process.env.DB_PASS)
 
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.swu9d.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.kqhr3iu.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -55,8 +55,9 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
 
-        const serviceCollection = client.db('carDoctor').collection('services');
-        const bookingCollection = client.db('carDoctor').collection('bookings');
+        const bookingCollection = client.db('Card-DR').collection('bookings');
+        const serviceCollection = client.db('Card-DR').collection('Services');
+
 
         // auth related api
         app.post('/jwt', logger, async (req, res) => {
@@ -75,6 +76,13 @@ async function run() {
                 .send({ success: true })
         })
 
+
+
+        app.post('/logout', async (req, res) => {
+            const user = req.body
+            res.clearCookie("token", { maxAge: 0 }.send({ success: true }))
+        })
+
         // services related api
         app.get('/services', logger, async (req, res) => {
             const cursor = serviceCollection.find();
@@ -87,7 +95,6 @@ async function run() {
             const query = { _id: new ObjectId(id) }
 
             const options = {
-                // Include only the `title` and `imdb` fields in the returned document
                 projection: { title: 1, price: 1, service_id: 1, img: 1 },
             };
 
@@ -101,8 +108,8 @@ async function run() {
             console.log(req.query.email);
             // console.log('ttttt token', req.cookies.token)
             console.log('user in the valid token', req.user)
-            if(req.query.email !== req.user.email){
-                return res.status(403).send({message: 'forbidden access'})
+            if (req.query.email !== req.user.email) {
+                return res.status(403).send({ message: 'forbidden access' })
             }
 
             let query = {};
